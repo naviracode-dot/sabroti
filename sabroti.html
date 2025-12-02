@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Homely Food Hub — Daily Menu</title>
+  <meta name="description" content="Homely Food Hub — View today's exclusive menu. For pre-order inquiries call +91 9004 249 399 / 9022 362 259" />
+  <!-- Tailwind CDN for quick setup (production: consider building Tailwind) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /*
+      Palette derived from your logo:
+      - Maroon / Deep Red (primary headline)
+      - Warm Orange (accent)
+      - Leaf Green (accents)
+      - Lemon Yellow (highlights)
+      - Soft cream/green backgrounds (no pure white anywhere)
+    */
+    :root{
+      --maroon: #C92F2F;     /* deep warm red from logo */
+      --warm-orange: #F29C2A;/* orange accent */
+      --leaf-green: #64A12F; /* leafy green */
+      --dark-green: #0F6F63; /* darker green for contrasts */
+      --lemon: #FFD54F;      /* lemon highlight */
+      --bg-top: #FFF8EE;     /* soft warm cream */
+      --bg-bottom: #FFF3DF;  /* lower warm tone */
+      --card-bg: rgba(255,255,255,0.06); /* translucent card */
+      --muted: #6b6b6b;
+      --glass: rgba(255,255,255,0.04);
+      --radius: 14px;
+    }
+
+    body{
+      min-height:100vh;
+      background: linear-gradient(180deg,var(--bg-top),var(--bg-bottom));
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      color: #222;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* container */
+    .container-max { max-width: 960px; margin-left: auto; margin-right: auto; padding: 0 16px; }
+
+    /* card */
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+      border-radius: var(--radius);
+      box-shadow: 0 8px 24px rgba(14, 80, 60, 0.06);
+      border: 1px solid rgba(15,111,99,0.05);
+    }
+
+    /* logo */
+    #brand-logo { height: 112px; width: auto; border-radius: 8px; box-shadow: 0 6px 18px rgba(15,111,99,0.05); }
+
+    /* focus ring */
+    :focus { outline: 3px solid rgba(100,161,47,0.12); outline-offset: 2px; }
+
+    /* day buttons sizing */
+    .day-btn { min-width:44px; min-height:40px; border-radius:10px; }
+
+    /* small text helper */
+    .muted { color: var(--muted); }
+
+    /* accent button */
+    .accent-btn {
+      background: linear-gradient(90deg, var(--leaf-green), var(--warm-orange));
+      color: #fff;
+    }
+
+    /* headings */
+    h1,h2,h3 { line-height:1.05; }
+
+    /* make sure no pure white blocks exist for print/visual parity */
+    .no-white { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); }
+  </style>
+</head>
+<body class="flex flex-col items-center py-6">
+
+  <main class="w-full container-max">
+
+    <!-- ===== HEADER ===== -->
+    <header class="flex flex-col items-center text-center w-full mb-6">
+      <!-- Large centered logo (replace src with your logo file name) -->
+      <div class="flex items-center justify-center mb-4">
+        <img id="brand-logo" src="SABROTI TRANSPARENT.png" alt="Sabroti logo" class="object-contain" />
+      </div>
+
+      <!-- Main Title -->
+      <h1 class="text-3xl sm:text-4xl font-extrabold mb-2" style="color:var(--maroon);">
+        HOMELY FOOD HUB
+      </h1>
+
+      <!-- Address -->
+      <p class="text-sm sm:text-base muted max-w-lg leading-relaxed">
+        Innov8, A Wing, 3rd Floor, Times Square Building, Marol, Andheri East, Mumbai 400059
+      </p>
+    </header>
+
+    <!-- ===== Controls (day picker) ===== -->
+    <section class="mb-5 card p-4 sm:p-5 no-white">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <div class="text-sm text-gray-700">View Menu</div>
+          <div class="text-base font-medium">Showing day-specific menu. Tap a day to switch.</div>
+        </div>
+
+        <!-- Day picker -->
+        <div class="flex gap-2 flex-wrap justify-start sm:justify-end" id="day-buttons-container">
+          <!-- day buttons injected via JS -->
+          <template id="day-btn-tpl">
+            <button class="day-btn px-3 py-2 rounded-lg text-xs font-semibold border" data-day="">
+              D
+            </button>
+          </template>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Menu card ===== -->
+    <section id="menu-card" class="card p-4 sm:p-6 mb-6 no-white">
+      <div id="menu-header" class="mb-3">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 id="menu-title" class="text-2xl font-bold">Today's Menu</h2>
+            <p id="menu-sub" class="text-sm muted">Exclusive menu for <span id="day-name">—</span></p>
+          </div>
+          <div class="hidden sm:flex items-center gap-3">
+            <div class="text-xs muted">Need help?</div>
+            <a href="tel:+919004249399" class="inline-flex items-center px-3 py-2 rounded-md text-sm font-semibold accent-btn">
+              Call to pre-order
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div id="menu-content" aria-live="polite" class="mt-2">
+        <div class="text-sm muted">Loading menu…</div>
+      </div>
+    </section>
+
+    <!-- ===== Footer ===== -->
+    <footer class="text-center muted mb-8">
+      <div class="mb-2 font-medium">For Pre-Order Inquiry, call us on</div>
+      <div class="text-lg sm:text-xl font-semibold" style="color:var(--maroon);">+91 9004 249 399 / 9022 362 259</div>
+    </footer>
+
+  </main>
+
+  <!-- =========== SCRIPT & CONFIG =========== -->
+  <script>
+    /******************************************************************
+     * CONFIG - Replace the CSV URL below with your published Google Sheet CSV URL:
+     * Example (publish to web -> CSV):
+     * https://docs.google.com/spreadsheets/d/<SHEET_ID>/pub?gid=<GID>&single=true&output=csv
+     ******************************************************************/
+    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1XkEwnqD8rMKLP3vI12mG5JJXZHCr1cv_vHuiiSrDmpM/export?format=csv&gid=0";
+
+    /******************************************************************
+     * Lightweight CSV parser + helpers
+     ******************************************************************/
+    const DAYS = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
+
+    function splitCSVLine(line){
+      const out = [];
+      let cur = '', inQ = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') { inQ = !inQ; continue; }
+        if (ch === ',' && !inQ) { out.push(cur); cur = ''; continue; }
+        cur += ch;
+      }
+      out.push(cur);
+      return out;
+    }
+
+    function parseCSV(text){
+      const rows = [];
+      const lines = text.replace(/\r/g,'').split('\n');
+      // find first non-empty header
+      let i=0;
+      while (i < lines.length && lines[i].trim() === '') i++;
+      if (i >= lines.length) return [];
+      const headers = splitCSVLine(lines[i++]).map(h => h.trim());
+      for (; i < lines.length; i++){
+        const line = lines[i];
+        if (!line || line.trim() === '') continue;
+        const cols = splitCSVLine(line);
+        const obj = {};
+        headers.forEach((h, idx) => obj[h] = (cols[idx] || '').trim());
+        rows.push(obj);
+      }
+      return rows;
+    }
+
+    function escapeHtml(s){ return (s||'').toString().replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+    /******************************************************************
+     * Rendering helpers
+     ******************************************************************/
+    function groupByCategory(items){
+      const grouped = {};
+      items.forEach(it => {
+        const cat = (it['Category'] || it['category'] || 'Other').trim();
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(it);
+      });
+      return grouped;
+    }
+
+    function renderMenuFor(dayKey, records){
+      const dayNormalized = (dayKey || '').toLowerCase();
+      const container = document.getElementById('menu-content');
+      const dayNameEl = document.getElementById('day-name');
+      dayNameEl.textContent = dayNormalized ? dayNormalized.charAt(0).toUpperCase() + dayNormalized.slice(1) : '—';
+
+      const filtered = records.filter(r => (r['Day'] || r['day'] || '').trim().toLowerCase() === dayNormalized);
+      if (!filtered.length){
+        container.innerHTML = `<div class="text-sm muted">No menu available for this day.</div>`;
+        return;
+      }
+
+      const grouped = groupByCategory(filtered);
+      let html = '<div class="space-y-4">';
+      Object.keys(grouped).forEach(cat => {
+        html += `<div>
+           <div class="flex items-center justify-between">
+             <h3 class="text-lg font-semibold" style="color:var(--warm-orange)">${escapeHtml(cat)}</h3>
+           </div>
+           <ul class="mt-2 space-y-2">`;
+        grouped[cat].forEach(it => {
+          const item = escapeHtml(it['Item'] || it['Menu Item'] || it['item'] || '');
+          const notes = escapeHtml(it['Notes'] || it['Description'] || it['notes'] || '');
+          html += `<li class="flex gap-3 items-start">
+                    <svg class="w-4 h-4 mt-1 text-lemon-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 10a8 8 0 1116 0A8 8 0 012 10zm9-1V5a1 1 0 10-2 0v6a1 1 0 00.553.895l4 2A1 1 0 0015 13v-2.5l-4-1.5z"/></svg>
+                    <div>
+                      <div class="font-medium">${item}</div>
+                      ${notes ? `<div class="text-xs muted">${notes}</div>` : ''}
+                    </div>
+                  </li>`;
+        });
+        html += `</ul></div>`;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    /******************************************************************
+     * Day picker builder & highlight
+     ******************************************************************/
+    function buildDayButtons(){
+      const tpl = document.getElementById('day-btn-tpl');
+      const container = document.getElementById('day-buttons-container');
+      DAYS.forEach(d => {
+        const clone = tpl.content.cloneNode(true);
+        const btn = clone.querySelector('button');
+        btn.dataset.day = d;
+        btn.textContent = d.slice(0,3).toUpperCase();
+        btn.classList.add('day-btn','bg-transparent','border','border-transparent','hover:shadow','px-3','py-2');
+        btn.style.border = '1px solid rgba(0,0,0,0.04)';
+        btn.addEventListener('click', () => {
+          const url = new URL(location.href);
+          url.searchParams.set('day', d);
+          history.replaceState({},'',url);
+          fetchAndRender(d);
+        });
+        container.appendChild(btn);
+      });
+    }
+
+    function highlightDayButton(day){
+      document.querySelectorAll('[data-day]').forEach(btn => {
+        const isActive = btn.dataset.day === day;
+        btn.classList.toggle('bg-amber-600', isActive);
+        btn.classList.toggle('text-white', isActive);
+        btn.classList.toggle('border-amber-600', isActive);
+        btn.classList.toggle('text-gray-800', !isActive);
+        btn.setAttribute('aria-pressed', String(isActive));
+        if (isActive) {
+          btn.style.background = 'linear-gradient(90deg,var(--leaf-green),var(--warm-orange))';
+          btn.style.color = '#fff';
+          btn.style.border = '1px solid rgba(0,0,0,0.06)';
+        } else {
+          btn.style.background = 'transparent';
+          btn.style.color = '#222';
+          btn.style.border = '1px solid rgba(0,0,0,0.04)';
+        }
+      });
+    }
+
+    /******************************************************************
+     * Fetching & caching
+     ******************************************************************/
+    async function fetchAndRender(dayParam){
+      const container = document.getElementById('menu-content');
+      container.innerHTML = `<div class="text-sm muted">Loading menu…</div>`;
+      try {
+        const res = await fetch(SHEET_CSV_URL, {cache: 'no-cache'});
+        if (!res.ok) throw new Error('Sheet fetch failed');
+        const csv = await res.text();
+        const records = parseCSV(csv);
+
+        // normalization
+        records.forEach(r => {
+          if (!('Day' in r) && ('day' in r)) r['Day'] = r['day'];
+          if (!('Item' in r) && ('item' in r)) r['Item'] = r['item'];
+        });
+
+        // cache in localStorage (2 minutes)
+        try { localStorage.setItem('sabroti_menu_cache', JSON.stringify({ts: Date.now(), records})); } catch(e){}
+
+        const day = (dayParam || new URLSearchParams(location.search).get('day') || new Date().toLocaleString('en-US',{weekday:'long'})).toLowerCase();
+        renderMenuFor(day, records);
+        highlightDayButton(day);
+      } catch (err) {
+        // fallback to cache
+        const cacheRaw = localStorage.getItem('sabroti_menu_cache');
+        if (cacheRaw) {
+          try {
+            const cached = JSON.parse(cacheRaw);
+            const day = (new URLSearchParams(location.search).get('day') || new Date().toLocaleString('en-US',{weekday:'long'})).toLowerCase();
+            renderMenuFor(day, cached.records);
+            highlightDayButton(day);
+            return;
+          } catch(e){}
+        }
+        container.innerHTML = `<div class="text-sm text-red-600">Unable to load menu. Please try again later.</div>`;
+        console.error(err);
+      }
+    }
+
+    /******************************************************************
+     * Init
+     ******************************************************************/
+    (function init(){
+      buildDayButtons();
+
+      const q = new URLSearchParams(location.search);
+      const dayParam = q.get('day') ? q.get('day').toLowerCase() : null;
+
+      const cacheRaw = localStorage.getItem('sabroti_menu_cache');
+      if (cacheRaw) {
+        try {
+          const parsed = JSON.parse(cacheRaw);
+          if (Date.now() - parsed.ts < 2 * 60 * 1000) {
+            const day = dayParam || new Date().toLocaleString('en-US',{weekday:'long'}).toLowerCase();
+            renderMenuFor(day, parsed.records);
+            highlightDayButton(day);
+            setTimeout(()=> fetchAndRender(dayParam), 400);
+            return;
+          }
+        } catch(e){}
+      }
+      fetchAndRender(dayParam);
+    })();
+
+  </script>
+
+  <!-- day button template (kept outside script for easy styling) -->
+  <template id="day-btn-tpl">
+    <button class="day-btn px-3 py-2 rounded-lg text-xs font-semibold border" data-day="">
+      D
+    </button>
+  </template>
+
+</body>
+</html>
